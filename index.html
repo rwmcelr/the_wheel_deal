@@ -201,8 +201,9 @@
       // --- Draw a single sector ---
       function drawSector(sector, i) {
         // Calculate the center angle of the slice
-        const startAngle = arc * i // - Math.PI / 2;
-        const endAngle = arc * (i + 1) // - Math.PI / 2;
+        // Offset all angles by -π/2 so the first slice starts at the top
+        const startAngle = arc * i - Math.PI / 2;
+        const endAngle = arc * (i + 1) - Math.PI / 2;
         const centerAngle = (startAngle + endAngle) / 2;
         ctx.save();
         ctx.beginPath();
@@ -225,19 +226,29 @@
       }
 
       function drawArcText(ctx, text, centerAngle, arc, radius, fontSize, isPastelGoth, baseRadius) {
+        // --- Parameters for margin and minimum radius ---
+        const marginPercent = 0.05; // 5% per side
+        const marginAngle = arc * marginPercent;
+        const usableArc = arc * (1 - 2 * marginPercent); // 90% of arc
+        const minLinesToSkip = 1; // Skip the innermost line (closest to center)
+
         ctx.save();
         ctx.font = `bold ${fontSize}px sans-serif`;
         ctx.fillStyle = isPastelGoth ? "#333" : "#fff";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
 
+        // Calculate how many lines can fit, skipping the innermost one
         const maxLines = Math.floor((baseRadius) / fontSize);
         let lines = [];
         let chars = Array.from(text);
         let charIndex = 0;
+        let lineNum = 0;
         for (let l = 0; l < maxLines && charIndex < chars.length; l++) {
+          // Skip the innermost line(s)
+          if (l < minLinesToSkip) continue;
           let r = baseRadius - l * fontSize;
-          let arcLength = arc * r;
+          let arcLength = usableArc * r;
           let lineChars = [];
           let lineWidth = 0;
           while (charIndex < chars.length) {
@@ -251,19 +262,22 @@
           lines.push({ text: lineChars.join(''), r: r });
         }
 
-        // 2. If not all characters fit, reduce font size and try again
+        // If not all characters fit, reduce font size and try again
         if (charIndex < chars.length) {
           ctx.restore();
           return false;
         }
 
-        // 3. Draw each line, centered as a block
+        // Draw each line, centered as a block within the usable arc
         for (let l = 0; l < lines.length; l++) {
           let { text, r } = lines[l];
           let charWidths = Array.from(text).map(char => ctx.measureText(char).width);
           let totalWidth = charWidths.reduce((a, b) => a + b, 0);
           let angularWidth = totalWidth / r;
-          let startAngle = centerAngle - angularWidth / 1.24;
+          // Center the text block within the usable arc, which is centered at centerAngle
+          let startAngle = centerAngle - (angularWidth / 2);
+          // Shift startAngle to account for arc margin
+          startAngle = Math.max(startAngle, (centerAngle - usableArc / 2) + marginAngle);
           let angle = startAngle;
           for (let i = 0; i < text.length; i++) {
             let char = text[i];
