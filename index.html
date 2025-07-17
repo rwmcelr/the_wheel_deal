@@ -53,6 +53,7 @@
         background-color: #333;
         color: #fff;
         border-radius: 50%;
+        border: 2px solid black;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -67,15 +68,6 @@
         text-align: center;
       }
 
-      #editor {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 8px;
-        width: 520px;
-        box-sizing: border-box;
-        margin-top: 10px;
-        justify-items: stretch;
-      }
       #editor input {
         width: 100%;
         margin: 0;
@@ -118,11 +110,17 @@
     <div id="editor"></div>
 
     <script>
+      // =====================
+      // Canvas & Wheel Setup
+      // =====================
       const canvas = document.getElementById("wheel");
       const ctx = canvas.getContext("2d");
       const rad = canvas.width / 2;
       const TAU = 2 * Math.PI;
 
+      // =====================
+      // DOM Elements
+      // =====================
       const spinButton = document.getElementById("spin");
       const sliceSlider = document.getElementById("sliceCount");
       const sliceLabel = document.getElementById("sliceCountLabel");
@@ -133,25 +131,19 @@
       const loadDropdown = document.getElementById("loadWheelDropdown");
       const paletteSelect = document.getElementById("paletteSelect");
 
+      // =====================
+      // Palette & Sector Data
+      // =====================
       let arc;
       const paletteNames = ["Default", "Pastel Goth", "Woodsy"];
       let currentPalette = "Default";
       const palettes = {};
+      let customLabels = {}; // Store custom labels permanently
+      let sectors = [];
 
-      paletteNames.forEach(name => {
-        palettes[name] = generatePalette(name);
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        paletteSelect.appendChild(opt);
-      });
-
-      // Store custom labels permanently
-      let customLabels = {};
-
-      let sectors = generateDefaultSectors(7, palettes[currentPalette]);
-
-      // Spin physics
+      // =====================
+      // Spin Physics
+      // =====================
       let ang = 0;
       let angVel = 0;
       let angVelMax = 0;
@@ -161,6 +153,9 @@
       let isAccelerating = false;
       let animFrame = null;
 
+      // =====================
+      // Palette Initialization
+      // =====================
       function generatePalette(name) {
         const count = 16;
         switch (name) {
@@ -198,13 +193,22 @@
         }));
       }
 
-      // --- Draw a single sector ---
+      function initPalettes() {
+        paletteNames.forEach(name => {
+          palettes[name] = generatePalette(name);
+          const opt = document.createElement("option");
+          opt.value = name;
+          opt.textContent = name;
+          paletteSelect.appendChild(opt);
+        });
+      }
+
+      // =====================
+      // Drawing Functions
+      // =====================
       function drawSector(sector, i) {
-        // Calculate the center angle of the slice
-        // Offset all angles by -π/2 so the first slice starts at the top
         const startAngle = arc * i - Math.PI / 2;
         const endAngle = arc * (i + 1) - Math.PI / 2;
-        const centerAngle = (startAngle + endAngle) / 2;
         ctx.save();
         ctx.beginPath();
         ctx.moveTo(rad, rad);
@@ -212,72 +216,55 @@
         ctx.closePath();
         ctx.fillStyle = sector.color;
         ctx.fill();
-        // Draw slice border
         ctx.lineWidth = 2;
         ctx.strokeStyle = '#000';
         ctx.stroke();
+
+        const textStartAngle = arc * i + ((arc * (i + 1) - arc * i) * 0.05);
         let labelLength = sector.label.length;
-        let baseRadius = rad * (labelLength <= 8 ? 0.7 : 5/6); // Move short labels inward
-        let fontSize = labelLength <= 10 ? 20 : 18; // Slightly larger font for short labels
-        while (!drawArcText(ctx, sector.label, centerAngle, arc, rad, fontSize, currentPalette === "Pastel Goth", baseRadius) && fontSize > 10) {
+        let fontSize = labelLength <= 10 ? 20 : 18;
+        while (!drawArcText(ctx, sector.label, textStartAngle, arc, rad, fontSize, currentPalette === "Pastel Goth") && fontSize > 10) {
           fontSize--;
         }
         ctx.restore();
       }
 
-      function drawArcText(ctx, text, centerAngle, arc, radius, fontSize, isPastelGoth, baseRadius) {
-        // --- Parameters for margin and minimum radius ---
-        const marginPercent = 0.05; // 5% per side
-        const marginAngle = arc * marginPercent;
-        const usableArc = arc * (1 - 2 * marginPercent); // 90% of arc
-        const minLinesToSkip = 1; // Skip the innermost line (closest to center)
-
+      function drawArcText(ctx, text, startAngle, arc, radius, fontSize, isPastelGoth) {
         ctx.save();
         ctx.font = `bold ${fontSize}px sans-serif`;
         ctx.fillStyle = isPastelGoth ? "#333" : "#fff";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
 
-        // Calculate how many lines can fit, skipping the innermost one
-        const maxLines = Math.floor((baseRadius) / fontSize);
         let lines = [];
         let chars = Array.from(text);
-        let charIndex = 0;
-        let lineNum = 0;
-        for (let l = 0; l < maxLines && charIndex < chars.length; l++) {
-          // Skip the innermost line(s)
-          if (l < minLinesToSkip) continue;
+        let charIndex = 0, baseRadius = rad * 0.85;
+        const maxLines = Math.floor((baseRadius) / fontSize);
+        for (let l = 0; l < maxLines - 2 && charIndex < chars.length; l++) {
           let r = baseRadius - l * fontSize;
-          let arcLength = usableArc * r;
+          let effectiveArcLength = arc * r * 0.9;
           let lineChars = [];
           let lineWidth = 0;
           while (charIndex < chars.length) {
             let char = chars[charIndex];
             let charWidth = ctx.measureText(char).width;
-            if (lineWidth + charWidth > arcLength) break;
+            if (lineWidth + charWidth > effectiveArcLength) break;
             lineChars.push(char);
             lineWidth += charWidth;
             charIndex++;
           }
           lines.push({ text: lineChars.join(''), r: r });
         }
-
-        // If not all characters fit, reduce font size and try again
         if (charIndex < chars.length) {
           ctx.restore();
           return false;
         }
 
-        // Draw each line, centered as a block within the usable arc
         for (let l = 0; l < lines.length; l++) {
           let { text, r } = lines[l];
           let charWidths = Array.from(text).map(char => ctx.measureText(char).width);
           let totalWidth = charWidths.reduce((a, b) => a + b, 0);
           let angularWidth = totalWidth / r;
-          // Center the text block within the usable arc, which is centered at centerAngle
-          let startAngle = centerAngle - (angularWidth / 2);
-          // Shift startAngle to account for arc margin
-          startAngle = Math.max(startAngle, (centerAngle - usableArc / 2) + marginAngle);
           let angle = startAngle;
           for (let i = 0; i < text.length; i++) {
             let char = text[i];
@@ -296,27 +283,6 @@
         return true;
       }
 
-      // --- Word Wrapping Helper ---
-      function wrapText(ctx, text, maxWidth, fontSize) {
-        ctx.font = `bold ${fontSize}px sans-serif`;
-        const words = text.split(' ');
-        const lines = [];
-        let currentLine = words[0] || '';
-        for (let i = 1; i < words.length; i++) {
-          const word = words[i];
-          const width = ctx.measureText(currentLine + ' ' + word).width;
-          if (width < maxWidth) {
-            currentLine += ' ' + word;
-          } else {
-            lines.push(currentLine);
-            currentLine = word;
-          }
-        }
-        lines.push(currentLine);
-        return lines;
-      }
-
-      // --- Add wheel border after all slices drawn ---
       function drawWheel() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         arc = TAU / sectors.length;
@@ -332,6 +298,9 @@
         spinButton.style.background = sector.color;
       }
 
+      // =====================
+      // Spin Logic
+      // =====================
       function getSectorIndex() {
         const adjusted = (ang - Math.PI / 2 + TAU) % TAU;
         return Math.floor(sectors.length - adjusted / TAU * sectors.length) % sectors.length;
@@ -350,7 +319,6 @@
 
       function frame() {
         if (!isSpinning) return;
-
         if (isAccelerating) {
           angVel += 0.01;
           if (angVel >= angVelMax) {
@@ -365,15 +333,15 @@
             cancelAnimationFrame(animFrame);
           }
         }
-
         ang += angVel;
         ang %= TAU;
         rotate();
         animFrame = requestAnimationFrame(frame);
       }
 
-      // --- UI Polish: Move save/dropdown below editor when visible ---
-      // Move save and dropdown below editor when editor is visible
+      // =====================
+      // Editor & UI Logic
+      // =====================
       function updateEditor() {
         editorDiv.innerHTML = "";
         sectors.forEach((sector, i) => {
@@ -383,7 +351,6 @@
           input.addEventListener("input", e => {
             const newLabel = e.target.value;
             sector.label = newLabel;
-            // Save custom label permanently
             if (newLabel !== `Slice ${i + 1}`) {
               customLabels[i] = newLabel;
             } else {
@@ -393,70 +360,14 @@
           });
           editorDiv.appendChild(input);
         });
-        // Move save and dropdown below editor
-        editorDiv.appendChild(document.createElement('br'));
-        editorDiv.appendChild(saveButton);
-        editorDiv.appendChild(loadDropdown);
+        editorDiv.style.display = "grid";
+        editorDiv.style.gridTemplateColumns = "repeat(4, 1fr)";
+        editorDiv.style.gap = "8px";
+        editorDiv.style.width = "520px";
+        editorDiv.style.boxSizing = "border-box";
+        editorDiv.style.marginTop = "10px";
+        editorDiv.style.justifyItems = "stretch";
       }
-
-      // Ensure save and dropdown are in controls when editor is hidden
-      editToggle.addEventListener("click", () => {
-        const isVisible = getComputedStyle(editControls).display !== "none";
-        editControls.style.display = isVisible ? "none" : "block";
-        editorDiv.style.display = isVisible ? "none" : "flex";
-        if (!isVisible) {
-          updateEditor();
-        } else {
-          // Move save and dropdown back to controls
-          document.getElementById('controls').appendChild(saveButton);
-          document.getElementById('controls').appendChild(loadDropdown);
-        }
-      });
-
-      sliceSlider.addEventListener("input", (e) => {
-        const count = parseInt(e.target.value);
-        sliceLabel.textContent = count;
-        
-        // Preserve existing sectors and their labels
-        const newSectors = [];
-        for (let i = 0; i < count; i++) {
-          if (i < sectors.length) {
-            // Keep existing sector (preserves custom labels)
-            newSectors.push(sectors[i]);
-          } else {
-            // Add new sector with default label or saved custom label
-            newSectors.push({
-              color: palettes[currentPalette][i % palettes[currentPalette].length],
-              label: customLabels[i] || `Slice ${i + 1}`
-            });
-          }
-        }
-        sectors = newSectors;
-        drawWheel();
-        updateEditor();
-      });
-
-      paletteSelect.addEventListener("change", (e) => {
-        currentPalette = e.target.value;
-        sectors = generateDefaultSectors(sectors.length, palettes[currentPalette]);
-        drawWheel();
-      });
-
-      spinButton.addEventListener("click", spin);
-
-      saveButton.addEventListener("click", () => {
-        const wheelData = {
-          sectors: sectors,
-          palette: currentPalette,
-          sliceCount: sectors.length,
-          customLabels: customLabels
-        };
-        const name = prompt("Enter a name for this wheel:");
-        if (name) {
-          localStorage.setItem(`wheel_${name}`, JSON.stringify(wheelData));
-          updateLoadDropdown();
-        }
-      });
 
       function updateLoadDropdown() {
         loadDropdown.innerHTML = '<option value="">-- Load Saved Wheel --</option>';
@@ -472,7 +383,61 @@
         }
       }
 
-      loadDropdown.addEventListener("change", (e) => {
+      // =====================
+      // Event Listeners
+      // =====================
+      function handleEditToggle() {
+        const isVisible = getComputedStyle(editControls).display !== "none";
+        editControls.style.display = isVisible ? "none" : "block";
+        editorDiv.style.display = isVisible ? "none" : "flex";
+        if (!isVisible) {
+          updateEditor();
+        } else {
+          document.getElementById('controls').appendChild(saveButton);
+          document.getElementById('controls').appendChild(loadDropdown);
+        }
+      }
+
+      function handleSliceSlider(e) {
+        const count = parseInt(e.target.value);
+        sliceLabel.textContent = count;
+        const newSectors = [];
+        for (let i = 0; i < count; i++) {
+          if (i < sectors.length) {
+            newSectors.push(sectors[i]);
+          } else {
+            newSectors.push({
+              color: palettes[currentPalette][i % palettes[currentPalette].length],
+              label: customLabels[i] || `Slice ${i + 1}`
+            });
+          }
+        }
+        sectors = newSectors;
+        drawWheel();
+        updateEditor();
+      }
+
+      function handlePaletteChange(e) {
+        currentPalette = e.target.value;
+        sectors = generateDefaultSectors(sectors.length, palettes[currentPalette]);
+        drawWheel();
+      }
+
+      function handleSave() {
+        const wheelData = {
+          sectors: sectors,
+          palette: currentPalette,
+          sliceCount: sectors.length,
+          customLabels: customLabels
+        };
+        const name = prompt("Enter a name for this wheel:");
+        if (name) {
+          localStorage.setItem(`wheel_${name}`, JSON.stringify(wheelData));
+          updateLoadDropdown();
+        }
+      }
+
+      function handleLoadDropdown(e) {
         if (e.target.value) {
           const wheelData = JSON.parse(localStorage.getItem(e.target.value));
           sectors = wheelData.sectors;
@@ -483,43 +448,27 @@
           sliceLabel.textContent = wheelData.sliceCount;
           drawWheel();
         }
-      });
+      }
 
-      // Initialize the wheel
-      drawWheel();
-      updateLoadDropdown();
+      // =====================
+      // Initialization
+      // =====================
+      function initialize() {
+        initPalettes();
+        sectors = generateDefaultSectors(7, palettes[currentPalette]);
+        drawWheel();
+        updateLoadDropdown();
+        // Attach event listeners
+        editToggle.addEventListener("click", handleEditToggle);
+        sliceSlider.addEventListener("input", handleSliceSlider);
+        paletteSelect.addEventListener("change", handlePaletteChange);
+        spinButton.addEventListener("click", spin);
+        saveButton.addEventListener("click", handleSave);
+        loadDropdown.addEventListener("change", handleLoadDropdown);
+      }
 
-      // --- UI Polish ---
-      // Style editor input boxes for a cohesive look
-      const style = document.createElement('style');
-      style.textContent = `
-        #editor input {
-          margin: 5px;
-          padding: 8px;
-          width: 140px;
-          border: 1px solid #bbb;
-          border-radius: 4px;
-          font-size: 15px;
-          box-sizing: border-box;
-        }
-        #controls, #editor {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-        }
-        #editControls {
-          margin-bottom: 10px;
-        }
-
-        #spin {
-          border: 2px solid #000;
-        }
-        #wheel {
-          border-radius: 50%;
-          border: 2px solid #000;
-        }
-      `;
-      document.head.appendChild(style);
+      // Start the app
+      initialize();
     </script>
   </body>
 </html>
