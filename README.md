@@ -1,39 +1,30 @@
-# Dinner Roulette
+# Custom Roulette Wheel
 
-A fun, interactive web app for deciding what to eat! Spin a customizable wheel to randomly select from your favorite dinner options.
+A customizable roulette wheel maker that lets you create, save, and share wheels for any purpose.
 
 ## Features
-- **Customizable Wheel:** Choose the number of slices (2–12), edit each label, and pick from multiple color palettes.
-- **Persistent Storage:** Save and load your favorite wheels using your browser's local storage.
-- **Responsive UI:** Works on desktop and mobile browsers.
-- **Edit Mode:** Quickly update slice names and wheel appearance.
-- **Animated Spin:** Realistic spinning animation with friction and randomization.
-
-## Getting Started
-1. **Clone or Download:**
-   - Download this repository or clone it to your local machine.
-2. **Open the App:**
-   - Simply open `index.html` in your web browser. No build or server required!
+- **Customizable Slices:** 2-12 slices with custom labels and colors
+- **Multiple Storage Options:** 
+  - **Me Wheels:** Save to your browser (private)
+  - **We Wheels:** Save to GitHub Issues (shared with everyone)
+- **Color Palettes:** Choose from Default, Pastel Goth, or Woodsy themes
+- **Realistic Animation:** Physics-based spinning with friction
+- **Mobile Friendly:** Works on all devices
 
 ## Usage
-1. **Spin the Wheel:**
-   - Click the **SPIN** button to randomly select a slice.
-2. **Edit the Wheel:**
-   - Click **Edit** to show the editor.
-   - Change the number of slices, color palette, or edit each slice label.
-   - Click **Save** to store your current wheel setup.
-   - Use the dropdown to load a previously saved wheel.
-3. **Customization:**
-   - Slices can be named anything (e.g., restaurant names, meal types, chores, etc.).
-   - Choose from several color palettes for a fresh look.
+1. **Create a Wheel:** Use the Edit button to customize slices, colors, and labels
+2. **Choose Storage:** Select "Me Wheels" for private storage or "We Wheels" for shared storage
+3. **Save & Load:** Save your wheels and load them back anytime
+4. **Spin:** Click SPIN to randomly select a slice
 
-## Customization & Development
-- All logic and UI are contained in `index.html` (HTML, CSS, and JavaScript).
-- To add more palettes, edit the `generatePalette` function in the script section.
-- No dependencies or frameworks required.
+## Setup for GitHub Storage
+To use "We Wheels" (shared storage), update the GitHub configuration in `index.html`:
+```javascript
+const GITHUB_REPO = 'your-username/your-repo-name';
+```
 
-## License
-MIT License. Free to use and modify.
+## No Dependencies
+Everything runs in the browser - just open `index.html` and start creating wheels.
 
 ---
-Enjoy deciding dinner the fun way!
+Perfect for decision making, games, or any random selection needs.
