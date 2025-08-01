@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Custom Roulette Wheel</title>
     <style>
       body {
@@ -14,6 +14,7 @@
         align-items: center;
         min-height: 100vh;
         padding: 20px;
+        overflow-x: hidden;
       }
 
       #wheel_container {
@@ -476,11 +477,11 @@
           editorInputs.push(input);
           editorDiv.appendChild(input);
         }
-        editorDiv.style.display = "flex";
-        editorDiv.style.gridTemplateColumns = "repeat(auto-fit, minmax(120px, 1fr))";
+        editorDiv.style.display = "grid";
+        editorDiv.style.gridTemplateColumns = "repeat(auto-fit, minmax(100px, 1fr))";
         editorDiv.style.gap = "8px";
         editorDiv.style.width = "100%";
-        editorDiv.style.maxWidth = "800px";
+        editorDiv.style.maxWidth = "650px";
         editorDiv.style.boxSizing = "border-box";
         editorDiv.style.marginTop = "10px";
         editorDiv.style.justifyItems = "stretch";
@@ -689,6 +690,8 @@
         } catch (error) {
           alert(`Failed to save wheel: ${error.message}`);
         }
+        saveButton.textContent = "Saved!";
+        setTimeout(() => saveButton.textContent = "Save", 1500);
       }
 
       async function handleLoadDropdown(e) {
@@ -735,7 +738,7 @@
         shuffledPalette = shuffleArray(palettes[currentPalette]);
         sectors = assignPaletteColorsToSectors(7, shuffledPalette);
         createEditorInputs();
-        drawWheel();
+        requestIdleCallback(() => drawWheel());
         updateLoadDropdown();
         editToggle.addEventListener("click", handleEditToggle);
         sliceSlider.addEventListener("input", handleSliceSlider);
