@@ -17,12 +17,6 @@ A customizable roulette wheel maker that lets you create, save, and share wheels
 3. **Save & Load:** Save your wheels and load them back anytime
 4. **Spin:** Click SPIN to randomly select a slice
 
-## Setup for GitHub Storage
-To use "We Wheels" (shared storage), update the GitHub configuration in `index.html`:
-```javascript
-const GITHUB_REPO = 'your-username/your-repo-name';
-```
-
 ## No Dependencies
 Everything runs in the browser - just open `index.html` and start creating wheels.
 
