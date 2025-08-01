@@ -157,7 +157,12 @@
       <div id="histogramContainer" style="display:none; margin-top:20px;"></div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+      const supabaseUrl = 'https://epxtpexfozbwdfmokdrp.supabase.co';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVweHRwZXhmb3pid2RmbW9rZHJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwMTUzNDIsImV4cCI6MjA2OTU5MTM0Mn0.Hv-RmjrWhO1a8lE_AkVzYnPZ6IXYBrJSOGoFjQg7HJQ';
+      const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
       // =====================
       // Canvas & Wheel Setup
       // =====================
@@ -183,8 +188,6 @@
       const editorButtons = document.getElementById("editorButtons");
       const histogramContainer = document.getElementById("histogramContainer");
       const storageTypeSelect = document.getElementById("storageType");
-      const GITHUB_REPO = 'rwmcelr/the_wheel_deal';
-
       // =====================
       // Palette & Sector Data
       // =====================
@@ -495,7 +498,7 @@
           }
         } else {
           try {
-            const wheels = await loadWheelsFromGitHub();
+            const wheels = await loadWheelsFromSupabase();
             wheels.forEach(wheel => {
               const option = document.createElement('option');
               option.value = wheel.id;
@@ -503,7 +506,7 @@
               loadDropdown.appendChild(option);
             });
           } catch (error) {
-            console.error('Failed to load wheels from GitHub:', error);
+            console.error('Failed to load wheels from Supabase:', error);
           }
         }
       }
@@ -515,58 +518,42 @@
         }));
       }
 
-      async function saveWheelToGitHub(wheelData, name) {
-        const issueBody = `Wheel: ${name}\n\n\`\`\`json\n${JSON.stringify(wheelData, null, 2)}\n\`\`\``;
-        
-        const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/issues`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/vnd.github.v3+json'
-          },
-          body: JSON.stringify({
-            title: `Wheel: ${name}`,
-            body: issueBody,
-            labels: ['wheel']
-          })
-        });
+      async function saveWheelToSupabase(wheelData, name) {
+        try {
+          const { data, error } = await supabase
+            .from('wheels')
+            .insert([
+              {
+                name: name,
+                wheel_data: wheelData,
+                created_at: new Date().toISOString()
+              }
+            ]);
 
-        if (!response.ok) {
-          throw new Error(`Failed to save wheel: ${response.statusText}`);
+          if (error) throw error;
+          return data;
+        } catch (error) {
+          throw new Error(`Failed to save wheel: ${error.message}`);
         }
-
-        return await response.json();
       }
 
-      async function loadWheelsFromGitHub() {
-        const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/issues?labels=wheel&state=open`, {
-          headers: {
-            'Accept': 'application/vnd.github.v3+json'
-          }
-        });
+      async function loadWheelsFromSupabase() {
+        try {
+          const { data, error } = await supabase
+            .from('wheels')
+            .select('*')
+            .order('created_at', { ascending: false });
 
-        if (!response.ok) {
-          throw new Error(`Failed to load wheels: ${response.statusText}`);
+          if (error) throw error;
+
+          return data.map(wheel => ({
+            id: wheel.id,
+            name: wheel.name,
+            data: wheel.wheel_data
+          }));
+        } catch (error) {
+          throw new Error(`Failed to load wheels: ${error.message}`);
         }
-
-        const issues = await response.json();
-        return issues.map(issue => {
-          const wheelMatch = issue.body.match(/```json\n([\s\S]*?)\n```/);
-          if (wheelMatch) {
-            try {
-              const wheelData = JSON.parse(wheelMatch[1]);
-              return {
-                id: issue.number,
-                name: issue.title.replace('Wheel: ', ''),
-                data: wheelData
-              };
-            } catch (e) {
-              console.error('Failed to parse wheel data:', e);
-              return null;
-            }
-          }
-          return null;
-        }).filter(wheel => wheel !== null);
       }
 
       function shuffleSectorColors() {
@@ -657,7 +644,7 @@
           if (storageTypeSelect.value === 'local') {
             localStorage.setItem(`wheel_${name}`, JSON.stringify(wheelData));
           } else {
-            await saveWheelToGitHub(wheelData, name);
+            await saveWheelToSupabase(wheelData, name);
           }
           await updateLoadDropdown();
         } catch (error) {
@@ -673,7 +660,7 @@
           if (storageTypeSelect.value === 'local') {
             wheelData = JSON.parse(localStorage.getItem(e.target.value));
           } else {
-            const wheels = await loadWheelsFromGitHub();
+            const wheels = await loadWheelsFromSupabase();
             const wheel = wheels.find(w => w.id.toString() === e.target.value);
             if (!wheel) {
               alert('Wheel not found');

@@ -6,7 +6,7 @@ A customizable roulette wheel maker that lets you create, save, and share wheels
 - **Customizable Slices:** 2-12 slices with custom labels and colors
 - **Multiple Storage Options:** 
   - **Me Wheels:** Save to your browser (private)
-  - **We Wheels:** Save to GitHub Issues (shared with everyone)
+  - **We Wheels:** Save to Supabase (shared with everyone)
 - **Color Palettes:** Choose from Default, Pastel Goth, or Woodsy themes
 - **Realistic Animation:** Physics-based spinning with friction
 - **Mobile Friendly:** Works on all devices
