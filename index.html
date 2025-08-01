@@ -476,7 +476,7 @@
           editorInputs.push(input);
           editorDiv.appendChild(input);
         }
-        editorDiv.style.display = "none";
+        editorDiv.style.display = "flex";
         editorDiv.style.gridTemplateColumns = "repeat(4, 1fr)";
         editorDiv.style.gap = "8px";
         editorDiv.style.width = "520px";
@@ -488,7 +488,7 @@
       function updateEditorInputsVisibility() {
         for (let i = 0; i < MAX_SLICES; i++) {
           if (i < sectors.length) {
-            editorInputs[i].style.display = "block";
+            editorInputs[i].style.display = "flex";
             editorInputs[i].value = sectors[i].label;
             editorInputs[i].style.background = sectors[i].color;
             // Match text color logic to drawArcText
