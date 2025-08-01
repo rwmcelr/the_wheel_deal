@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Custom Roulette Wheel</title>
     <style>
       body {
@@ -60,7 +60,7 @@
         justify-content: center;
         align-items: center;
         font-weight: bold;
-        font-size: clamp(16px, 4vw, 20px);
+        font-size: min(20px, 4vw);
         cursor: pointer;
         z-index: 10;
       }
@@ -76,14 +76,14 @@
         border: none;
         border-radius: 20px;
         padding: min(8px, 2vw) min(18px, 4vw);
-        font-size: clamp(12px, 3.5vw, 15px);
+        font-size: min(15px, 3.5vw);
         font-weight: bold;
         box-shadow: 0 2px 8px #0001;
         cursor: pointer;
         transition: background 0.2s, box-shadow 0.2s, color 0.2s;
         margin: 0 min(4px, 1vw);
       }
-      button:hover {
+      button:hover, button:focus {
         background: #f0f0f0;
         color: #222;
         box-shadow: 0 4px 16px #0002;
@@ -93,7 +93,7 @@
         border: none;
         border-radius: 18px;
         padding: min(10px, 2.5vw) min(14px, 3.5vw);
-        font-size: clamp(12px, 4vw, 16px);
+        font-size: min(16px, 4vw);
         margin: 0;
         box-sizing: border-box;
         box-shadow: 0 1px 4px #0001;
@@ -106,10 +106,11 @@
       }
 
       #editor {
-        display: flex;
+        display: grid;
         justify-content: center;
         margin-left: auto;
         margin-right: auto;
+        max-width: 90vw;
       }
 
       #editControls {
@@ -120,7 +121,7 @@
       select {
         padding: min(5px, 1.5vw);
         margin: min(5px, 1.5vw);
-        font-size: clamp(10px, 3.5vw, 14px);
+        font-size: min(14px, 3.5vw);
       }
     </style>
   </head>
@@ -157,7 +158,7 @@
         <button id="shuffleColors">Shuffle Colors!</button>
         <button id="showHistogram">100 Spins!</button>
       </div>
-      <div id="histogramContainer" style="display:none; margin-top:20px; overflow-x:auto; max-width:100vw;"></div>
+      <div id="histogramContainer" style="display:none; margin-top:20px;"></div>
     </div>
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -460,7 +461,6 @@
           input.type = "text";
           input.value = customLabels[i] || `Slice ${i + 1}`;
           input.style.display = "none";
-          input.style.width = "100%";
           input.addEventListener("input", e => {
             const newLabel = e.target.value;
             if (i < sectors.length) {
@@ -476,11 +476,10 @@
           editorInputs.push(input);
           editorDiv.appendChild(input);
         }
-        editorDiv.style.display = "grid";
-        editorDiv.style.gridTemplateColumns = "repeat(auto-fit, minmax(100px, 1fr))";
+        editorDiv.style.display = "none";
+        editorDiv.style.gridTemplateColumns = "repeat(4, 1fr)";
         editorDiv.style.gap = "8px";
-        editorDiv.style.width = "100%";
-        editorDiv.style.maxWidth = "650px";
+        editorDiv.style.width = "520px";
         editorDiv.style.boxSizing = "border-box";
         editorDiv.style.marginTop = "10px";
         editorDiv.style.justifyItems = "stretch";
@@ -619,7 +618,7 @@
         angVel = originalAngVel;
         isSpinning = originalIsSpinning;
         let maxCount = Math.max(...counts);
-        let barMaxWidth = Math.min(window.innerWidth - 140, 220);
+        let barMaxWidth = 220;
         let html = `<div style='display:flex; flex-direction:column; align-items:center; gap:6px;'>`;
         for (let i = 0; i < sectors.length; i++) {
           let barWidth = Math.round((counts[i] / maxCount) * barMaxWidth);
@@ -689,8 +688,6 @@
         } catch (error) {
           alert(`Failed to save wheel: ${error.message}`);
         }
-        saveButton.textContent = "Saved!";
-        setTimeout(() => saveButton.textContent = "Save", 1500);
       }
 
       async function handleLoadDropdown(e) {
@@ -724,7 +721,6 @@
           sliceSlider.value = wheelData.sliceCount;
           sliceLabel.textContent = wheelData.sliceCount;
           drawWheel();
-          updateEditor();
         } catch (error) {
           alert(`Failed to load wheel: ${error.message}`);
         }
@@ -738,7 +734,7 @@
         shuffledPalette = shuffleArray(palettes[currentPalette]);
         sectors = assignPaletteColorsToSectors(7, shuffledPalette);
         createEditorInputs();
-        requestIdleCallback(() => drawWheel());
+        drawWheel();
         updateLoadDropdown();
         editToggle.addEventListener("click", handleEditToggle);
         sliceSlider.addEventListener("input", handleSliceSlider);
