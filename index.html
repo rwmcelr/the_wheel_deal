@@ -18,8 +18,8 @@
 
       #wheel_container {
         position: relative;
-        width: 400px;
-        height: 400px;
+        width: min(400px, 90vw);
+        height: min(400px, 90vw);
         border-radius: 50%;
         overflow: hidden;
         background-color: #333;
@@ -28,6 +28,8 @@
       #wheel {
         display: block;
         border-radius: 50%;
+        width: 100%;
+        height: 100%;
       }
 
       #arrow {
@@ -48,8 +50,8 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 80px;
-        height: 80px;
+        width: min(80px, 20vw);
+        height: min(80px, 20vw);
         background-color: #333;
         color: #fff;
         border-radius: 50%;
@@ -58,7 +60,7 @@
         justify-content: center;
         align-items: center;
         font-weight: bold;
-        font-size: 20px;
+        font-size: min(20px, 4vw);
         cursor: pointer;
         z-index: 10;
       }
@@ -73,13 +75,13 @@
         color: #333;
         border: none;
         border-radius: 20px;
-        padding: 8px 18px;
-        font-size: 15px;
+        padding: min(8px, 2vw) min(18px, 4vw);
+        font-size: min(15px, 3.5vw);
         font-weight: bold;
         box-shadow: 0 2px 8px #0001;
         cursor: pointer;
         transition: background 0.2s, box-shadow 0.2s, color 0.2s;
-        margin: 0 4px;
+        margin: 0 min(4px, 1vw);
       }
       button:hover, button:focus {
         background: #f0f0f0;
@@ -90,8 +92,8 @@
       #editor input {
         border: none;
         border-radius: 18px;
-        padding: 10px 14px;
-        font-size: 16px;
+        padding: min(10px, 2.5vw) min(14px, 3.5vw);
+        font-size: min(16px, 4vw);
         margin: 0;
         box-sizing: border-box;
         box-shadow: 0 1px 4px #0001;
@@ -108,6 +110,7 @@
         justify-content: center;
         margin-left: auto;
         margin-right: auto;
+        max-width: 90vw;
       }
 
       #editControls {
@@ -116,8 +119,9 @@
       }
 
       select {
-        padding: 5px;
-        margin: 5px;
+        padding: min(5px, 1.5vw);
+        margin: min(5px, 1.5vw);
+        font-size: min(14px, 3.5vw);
       }
     </style>
   </head>
@@ -131,7 +135,7 @@
           <div id="controls">
         <button id="editToggle">Edit</button>
         <div id="saveControls" style="display:none;">
-          <div style="display:flex; align-items:center; gap:8px; justify-content:center;">
+          <div style="display:flex; align-items:center; gap:8px; justify-content:center; flex-wrap:wrap;">
             <select id="storageType" title="Wheel Source">
               <option value="local">Me Wheels</option>
               <option value="github">We Wheels</option>
