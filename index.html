@@ -157,11 +157,29 @@
       <div id="histogramContainer" style="display:none; margin-top:20px;"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
       const supabaseUrl = 'https://epxtpexfozbwdfmokdrp.supabase.co';
       const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVweHRwZXhmb3pid2RmbW9rZHJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwMTUzNDIsImV4cCI6MjA2OTU5MTM0Mn0.Hv-RmjrWhO1a8lE_AkVzYnPZ6IXYBrJSOGoFjQg7HJQ';
-      const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+      let supabase = null;
+      
+      // Initialize Supabase after the library loads
+      function initSupabase() {
+        try {
+          if (window.supabase) {
+            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+            console.log('Supabase initialized successfully');
+          } else {
+            console.error('Supabase library not loaded');
+          }
+        } catch (error) {
+          console.error('Failed to initialize Supabase:', error);
+        }
+      }
+      
+      // Try to initialize immediately, and also after a short delay
+      initSupabase();
+      setTimeout(initSupabase, 1000);
 
       // =====================
       // Canvas & Wheel Setup
@@ -497,6 +515,10 @@
             }
           }
         } else {
+          if (!supabase) {
+            console.error('Supabase not available for loading wheels');
+            return;
+          }
           try {
             const wheels = await loadWheelsFromSupabase();
             wheels.forEach(wheel => {
@@ -519,6 +541,10 @@
       }
 
       async function saveWheelToSupabase(wheelData, name) {
+        if (!supabase) {
+          throw new Error('Supabase not initialized. Please refresh the page.');
+        }
+        
         try {
           const { data, error } = await supabase
             .from('wheels')
@@ -538,6 +564,10 @@
       }
 
       async function loadWheelsFromSupabase() {
+        if (!supabase) {
+          throw new Error('Supabase not initialized. Please refresh the page.');
+        }
+        
         try {
           const { data, error } = await supabase
             .from('wheels')
@@ -644,6 +674,10 @@
           if (storageTypeSelect.value === 'local') {
             localStorage.setItem(`wheel_${name}`, JSON.stringify(wheelData));
           } else {
+            if (!supabase) {
+              alert('Supabase not available. Please refresh the page or use "Me Wheels" for now.');
+              return;
+            }
             await saveWheelToSupabase(wheelData, name);
           }
           await updateLoadDropdown();
@@ -660,6 +694,10 @@
           if (storageTypeSelect.value === 'local') {
             wheelData = JSON.parse(localStorage.getItem(e.target.value));
           } else {
+            if (!supabase) {
+              alert('Supabase not available. Please refresh the page or use "Me Wheels" for now.');
+              return;
+            }
             const wheels = await loadWheelsFromSupabase();
             const wheel = wheels.find(w => w.id.toString() === e.target.value);
             if (!wheel) {
