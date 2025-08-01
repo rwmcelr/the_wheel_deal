@@ -14,7 +14,6 @@
         align-items: center;
         min-height: 100vh;
         padding: 20px;
-        overflow-x: hidden;
       }
 
       #wheel_container {
@@ -84,7 +83,7 @@
         transition: background 0.2s, box-shadow 0.2s, color 0.2s;
         margin: 0 min(4px, 1vw);
       }
-      button:hover, button:focus {
+      button:hover {
         background: #f0f0f0;
         color: #222;
         box-shadow: 0 4px 16px #0002;
@@ -107,11 +106,10 @@
       }
 
       #editor {
-        display: grid;
+        display: flex;
         justify-content: center;
         margin-left: auto;
         margin-right: auto;
-        max-width: 90vw;
       }
 
       #editControls {
@@ -462,6 +460,7 @@
           input.type = "text";
           input.value = customLabels[i] || `Slice ${i + 1}`;
           input.style.display = "none";
+          input.style.width = "100%";
           input.addEventListener("input", e => {
             const newLabel = e.target.value;
             if (i < sectors.length) {
@@ -725,6 +724,7 @@
           sliceSlider.value = wheelData.sliceCount;
           sliceLabel.textContent = wheelData.sliceCount;
           drawWheel();
+          updateEditor();
         } catch (error) {
           alert(`Failed to load wheel: ${error.message}`);
         }
