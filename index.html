@@ -118,6 +118,18 @@
         margin-top: 10px;
       }
 
+      @media (max-width: 600px) {
+        #editorDiv {
+          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        }
+      }
+
+      @media (min-width: 601px) {
+        #editorDiv {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+
       select {
         padding: min(5px, 1.5vw);
         margin: min(5px, 1.5vw);
@@ -459,6 +471,8 @@
         for (let i = 0; i < MAX_SLICES; i++) {
           const input = document.createElement("input");
           input.type = "text";
+          input.style.width = "100%";
+          input.style.minWidth = "0";
           input.value = customLabels[i] || `Slice ${i + 1}`;
           input.style.display = "none";
           input.addEventListener("input", e => {
@@ -479,7 +493,8 @@
         editorDiv.style.display = "none";
         editorDiv.style.gridTemplateColumns = "repeat(4, 1fr)";
         editorDiv.style.gap = "8px";
-        editorDiv.style.width = "520px";
+        editorDiv.style.width = "100%";
+        editorDiv.style.maxWidth = "520px";
         editorDiv.style.boxSizing = "border-box";
         editorDiv.style.marginTop = "10px";
         editorDiv.style.justifyItems = "stretch";
