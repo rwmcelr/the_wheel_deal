@@ -1,0 +1,228 @@
+body {
+  font-family: sans-serif;
+  background-color: #f0f0f0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+#wheel_container {
+  position: relative;
+  width: min(400px, 90vw);
+  height: min(400px, 90vw);
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #333;
+}
+
+#wheel {
+  display: block;
+  border-radius: 50%;
+  width: 100%;
+  height: 100%;
+}
+
+#arrow {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -65%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 15px solid #333;
+  z-index: 10;
+}
+
+#spin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(80px, 20vw);
+  height: min(80px, 20vw);
+  background-color: #333;
+  color: #fff;
+  border-radius: 50%;
+  border: 2px solid black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: min(20px, 4vw);
+  cursor: pointer;
+  z-index: 10;
+}
+
+#controls {
+  margin-top: 20px;
+  text-align: center;
+}
+
+button {
+  background: #fff;
+  color: #333;
+  border: none;
+  border-radius: 20px;
+  padding: min(8px, 2vw) min(18px, 4vw);
+  font-size: min(15px, 3.5vw);
+  font-weight: bold;
+  box-shadow: 0 2px 8px #0001;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+  margin: 0 min(4px, 1vw);
+}
+button:hover {
+  background: #fde4fb;
+  color: #222;
+  box-shadow: 0 4px 16px #0002;
+}
+
+#editor input {
+  border: none;
+  border-radius: 18px;
+  padding: min(10px, 2.5vw) min(14px, 3.5vw);
+  font-size: min(16px, 4vw);
+  margin: 0;
+  box-sizing: border-box;
+  box-shadow: 0 1px 4px #0001;
+  outline: none;
+  transition: box-shadow 0.2s, background 0.2s, color 0.2s;
+}
+#editor input:focus {
+  box-shadow: 0 2px 8px #0002;
+  background: #fffbe7;
+}
+
+#editor {
+  display: grid;
+  justify-content: center;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 90vw;
+}
+
+#editControls {
+  display: none;
+  margin-top: 10px;
+}
+
+.hidden-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.hidden-overlay.active {
+  display: flex;
+}
+
+#pickrModalContent {
+  width: 25vw;
+  height: auto;
+  max-height: 80vh;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  position: relative;
+  display: grid;
+  grid-template-columns: 25% 75%;
+  grid-template-rows: 1fr;
+  gap: 12px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+@media (max-width: 700px) {
+  #pickrModalContent {
+    width: 90vw;
+    grid-template-columns: 35% 65%;
+  }
+}
+
+#sliceButtonsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: 100%;
+}
+
+#sliceButtonsContainer button {
+  border: none;
+  border-radius: 18px;
+  padding: clamp(6px, 1.5vw, 10px) clamp(8px, 2vw, 14px);
+  font-size: clamp(12px, 2.2vw, 16px);
+  margin: 0;
+  box-sizing: border-box;
+  box-shadow: 0 1px 4px #0001;
+  outline: none;
+  transition: box-shadow 0.2s, background 0.2s, color 0.2s, outline 0.2s;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+#sliceButtonsContainer button.selected {
+  box-shadow: inset 0 0 0 2px #fde4fb, 0 2px 2px rgba(0, 0, 0, 0.2);
+}
+
+#sliceButtonsContainer button:hover {
+  box-shadow: 0 2px 2px #0002;
+}
+
+#pickrHolder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  max-height: 100%;
+}
+
+/* Hide the small Pickr trigger button and in-panel preview */
+#pickrHolder .pcr-button {
+  display: none !important;
+}
+#pickrHolder .pcr-app {
+  position: static !important;
+  box-shadow: none !important;
+  z-index: 1 !important;
+}
+
+#closePickrButton {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  #editorDiv {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+}
+
+@media (min-width: 601px) {
+  #editorDiv {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+select {
+  padding: min(5px, 1.5vw);
+  margin: min(5px, 1.5vw);
+  font-size: min(14px, 3.5vw);
+}
+
+
